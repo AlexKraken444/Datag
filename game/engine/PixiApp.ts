@@ -1,7 +1,9 @@
 "use client";
 
-// Datag — bootstraps a PIXI.Application sized to the arena and attaches it to
-// a host <div>. We pre-create the layer containers used by the renderer.
+// Datag — bootstraps a PIXI.Application sized to the arena + Lighter ring
+// and attaches it to a host <div>. All layers are offset by ARENA.OFFSET so
+// that arena (0,0) lands inside the canvas while the perimeter ring fits
+// around it.
 
 import { Application, Container } from "pixi.js";
 import { ARENA, COLORS } from "@/lib/constants";
@@ -25,8 +27,8 @@ export class PixiApp {
 
   async init(host: HTMLDivElement) {
     await this.app.init({
-      width: ARENA.SIZE,
-      height: ARENA.SIZE,
+      width: ARENA.OUTER,
+      height: ARENA.OUTER,
       background: COLORS.ARENA_BG,
       antialias: true,
       resolution: Math.min(2, window.devicePixelRatio || 1),
@@ -45,6 +47,16 @@ export class PixiApp {
       light: new Container(),
       hud: new Container(),
     };
+    // shift world so arena (0,0) is at canvas (OFFSET, OFFSET)
+    for (const c of [
+      this.layers.bg,
+      this.layers.shadows,
+      this.layers.entities,
+      this.layers.light,
+      this.layers.hud,
+    ]) {
+      c.position.set(ARENA.OFFSET, ARENA.OFFSET);
+    }
     this.app.stage.addChild(
       this.layers.bg,
       this.layers.shadows,

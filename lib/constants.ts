@@ -1,8 +1,12 @@
 // Datag — game-wide constants. Shared by server (authoritative) and client (render).
 
+const _LIGHTER_THICKNESS = 90;
+
 export const ARENA = {
-  SIZE: 1000,            // square arena side
-  WALL: 16,              // border thickness (visual)
+  SIZE: 1000,                                          // playable square side
+  WALL: 16,                                            // border thickness (visual)
+  OUTER: 1000 + 2 * _LIGHTER_THICKNESS,                // canvas side (arena + ring)
+  OFFSET: _LIGHTER_THICKNESS,                          // where arena (0,0) sits on canvas
 } as const;
 
 export const TICK = {
@@ -22,12 +26,11 @@ export const TAGER = {
 
 export const LIGHTER = {
   RADIUS: 14,
-  SPEED: 180,
-  ZONE_THICKNESS: 90,    // along the outer edge
-  ZONE_LENGTH: 360,      // along the edge
-  BRIGHTNESS_MIN: 0.4,
-  BRIGHTNESS_MAX: 1.6,
-  BRIGHTNESS_STEP: 0.6,  // per sec while LMB/RMB held
+  SPEED: 220,
+  ZONE_THICKNESS: _LIGHTER_THICKNESS,  // ring band width around arena
+  BRIGHTNESS_MIN: 0.5,
+  BRIGHTNESS_MAX: 1.7,
+  BRIGHTNESS_STEP: 0.7,                // per sec while LMB/RMB held
 } as const;
 
 export const SHADOW = {
@@ -56,7 +59,6 @@ export const MATCH = {
 export const ZONE = {
   TAGER_LEG: 220,        // right-triangle leg
   LIGHTER_THICKNESS: LIGHTER.ZONE_THICKNESS,
-  LIGHTER_LENGTH: LIGHTER.ZONE_LENGTH,
 } as const;
 
 export const TEAM = {

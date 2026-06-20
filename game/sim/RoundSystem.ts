@@ -7,7 +7,7 @@ import type {
   TagerState,
   Team,
 } from "@/types/game";
-import { LighterZones, TagerZones } from "@/lib/zones";
+import { LighterSpawn, TagerZones } from "@/lib/zones";
 
 export class RoundSystem {
   state: RoundState = {
@@ -54,7 +54,7 @@ export class RoundSystem {
       t.alive = true;
     }
     for (const l of lighters) {
-      const s = LighterZones[l.team].spawn;
+      const s = LighterSpawn[l.team];
       l.pos = { x: s.x, y: s.y };
       // aim toward center by default
       l.aim = { x: 500, y: 500 };

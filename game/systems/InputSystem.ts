@@ -60,19 +60,21 @@ export class InputSystem {
       base.moveY = (down ? 1 : 0) - (up ? 1 : 0);
       base.sprint = !!k["ShiftLeft"] || !!k["ShiftRight"];
     } else {
-      // Lighter zone is a vertical strip on the side: A/D nudges horizontally,
-      // W/S nudges along the strip — the server clamps to the AABB either way.
+      // Lighter slides around the full arena perimeter ring. WASD moves both
+      // axes; the LightSystem clamps to the ring (auto-slides along corners).
       const left = k["KeyA"] || k["ArrowLeft"];
       const right = k["KeyD"] || k["ArrowRight"];
       const up = k["KeyW"] || k["ArrowUp"];
       const down = k["KeyS"] || k["ArrowDown"];
       base.moveX = (right ? 1 : 0) - (left ? 1 : 0);
       base.moveY = (down ? 1 : 0) - (up ? 1 : 0);
-      // mouse -> arena coordinates
-      const ax = (m.x / this.cfg.containerSize.w) * ARENA.SIZE;
-      const ay = (m.y / this.cfg.containerSize.h) * ARENA.SIZE;
-      base.aimX = ax;
-      base.aimY = ay;
+      // Mouse -> arena coords. The canvas covers ARENA.OUTER² (arena + ring),
+      // so subtract OFFSET to land back in arena space (negative values are
+      // valid: they point into the ring around the arena).
+      const cx = (m.x / this.cfg.containerSize.w) * ARENA.OUTER - ARENA.OFFSET;
+      const cy = (m.y / this.cfg.containerSize.h) * ARENA.OUTER - ARENA.OFFSET;
+      base.aimX = cx;
+      base.aimY = cy;
       base.brightnessUp = m.lmb;
       base.brightnessDown = m.rmb;
     }
