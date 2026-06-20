@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
@@ -8,60 +8,36 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TeamPanel } from "@/components/lobby/TeamPanel";
 import { ChatBox } from "@/components/lobby/ChatBox";
-import { useSocketStore } from "@/stores/useSocketStore";
+import { useRealtimeStore } from "@/stores/useRealtimeStore";
 import { useRoomStore } from "@/stores/useRoomStore";
-import type { ChatMessage, Role, RoomState, Team } from "@/types/game";
+import type { Role, Team } from "@/types/game";
 
 export default function RoomPage() {
   const { code } = useParams<{ code: string }>();
   const router = useRouter();
-  const connect = useSocketStore((s) => s.connect);
-  const socket = useSocketStore((s) => s.socket);
-  const nickname = useRoomStore((s) => s.nickname);
+  const rt = useRealtimeStore();
   const room = useRoomStore((s) => s.room);
   const setRoom = useRoomStore((s) => s.setRoom);
-  const pushChat = useRoomStore((s) => s.pushChat);
 
-  const [err, setErr] = useState<string | null>(null);
-
-  // bootstrap: ensure socket + room
+  // If user landed here directly (refresh / deep link) without an active
+  // connection, bounce them back to /join so they re-enter the code+nick.
   useEffect(() => {
-    const s = connect();
-    const onUpdate = (r: RoomState) => setRoom(r);
-    const onChat = (m: ChatMessage) => pushChat(m);
-    s.on("room:update", onUpdate);
-    s.on("room:chat", onChat);
-    s.on("match:start", () => router.push(`/game/${code}`));
-
-    // if we landed here without a room (refresh) — try to join
-    if (!room && nickname) {
-      s.emit("room:join", { nickname, code: String(code) }, (res) => {
-        if (!res.ok) setErr(res.error);
-        else setRoom(res.room);
-      });
+    if (!rt.role) {
+      router.replace(`/join?code=${code}`);
     }
-    return () => {
-      s.off("room:update", onUpdate);
-      s.off("room:chat", onChat);
-      s.off("match:start");
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const meId = socket?.id ?? null;
+  const meId = rt.myPeerId;
   const me = useMemo(
     () => room?.players.find((p) => p.id === meId) ?? null,
     [room, meId],
   );
 
-  if (err) {
+  if (!rt.role) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <Card className="max-w-md text-center">
-          <h1 className="text-xl mb-2">Не удалось войти</h1>
-          <p className="text-muted mb-4">{err}</p>
-          <Link href="/" className="btn-primary inline-block">В меню</Link>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center text-muted">
+        Соединение потеряно, возвращаемся к подключению…
       </div>
     );
   }
@@ -74,20 +50,21 @@ export default function RoomPage() {
     );
   }
 
-  const onSelect = (team: Team, role: Role) =>
-    socket?.emit("room:select", { team, role });
-  const onReady = (v: boolean) => socket?.emit("room:ready", { ready: v });
-  const onStart = () => socket?.emit("room:start");
-  const onChatSend = (text: string) => socket?.emit("room:chat", { text });
+  const onSelect = (team: Team, role: Role) => rt.select(team, role);
+  const onReady = (v: boolean) => rt.ready(v);
+  const onStart = () => rt.start();
+  const onChatSend = (text: string) => rt.chat(text);
   const onLeave = () => {
-    socket?.emit("room:leave");
+    rt.reset();
     setRoom(null);
     router.push("/");
   };
 
   const isHost = meId === room.hostId;
   const ready = me?.ready ?? false;
-  const allReady = room.players.length === 4 && room.players.every((p) => p.ready && p.team && p.role);
+  const allReady =
+    room.players.length === 4 &&
+    room.players.every((p) => p.ready && p.team && p.role);
 
   return (
     <div className="min-h-screen px-4 py-6">
@@ -123,6 +100,11 @@ export default function RoomPage() {
                 <Button onClick={onStart} disabled={!allReady}>
                   Старт матча {allReady ? "" : "(нужны 4 готовых)"}
                 </Button>
+              )}
+              {isHost && (
+                <div className="text-xs text-accent">
+                  Ты хост — твой браузер будет крутить симуляцию.
+                </div>
               )}
             </Card>
             <ChatBox messages={room.chat} onSend={onChatSend} />

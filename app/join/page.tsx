@@ -7,16 +7,19 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
-import { useSocketStore } from "@/stores/useSocketStore";
+import { useRealtimeStore } from "@/stores/useRealtimeStore";
 import { useRoomStore } from "@/stores/useRoomStore";
+import { useGameStore } from "@/stores/useGameStore";
 import { nicknameValid } from "@/lib/code";
 
 export default function JoinRoomPage() {
   const router = useRouter();
-  const connect = useSocketStore((s) => s.connect);
+  const setPeer = useRealtimeStore((s) => s.setPeer);
+  const reset = useRealtimeStore((s) => s.reset);
   const nickname = useRoomStore((s) => s.nickname);
   const setNickname = useRoomStore((s) => s.setNickname);
   const setRoom = useRoomStore((s) => s.setRoom);
+  const pushChat = useRoomStore((s) => s.pushChat);
   const [nick, setNick] = useState(nickname || "");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -30,13 +33,41 @@ export default function JoinRoomPage() {
     if (c.length < 4) return setErr("Введи код комнаты");
     setBusy(true);
     setNickname(nick);
-    const sock = connect();
-    sock.emit("room:join", { nickname: nick, code: c }, (res) => {
-      setBusy(false);
-      if (!res.ok) return setErr(res.error);
-      setRoom(res.room);
-      router.push(`/room/${c}`);
+
+    const { PeerClient } = await import("@/game/host/PeerClient");
+    const client = new PeerClient(c, nick, {
+      onWelcome: () => {/* welcomed */},
+      onRoom: (state) => setRoom(state),
+      onChat: (m) => pushChat(m),
+      onMatchStart: () => {
+        useGameStore.getState().reset();
+        router.push(`/game/${c}`);
+      },
+      onSnapshot: (snap) => useGameStore.getState().setSnapshot(snap),
+      onRoundEnd: (e) =>
+        useGameStore.getState().setLastRoundEnd({ ...e, ts: Date.now() }),
+      onMatchEnd: (sum) => useGameStore.getState().setSummary(sum),
+      onKicked: (reason) => {
+        reset();
+        setRoom(null);
+        setErr(reason);
+        router.push("/");
+      },
+      onError: (msg) => setErr(msg),
+      onConnected: () => {/* noop */},
+      onDisconnected: () => {/* keep showing what we have */},
     });
+
+    const res = await client.connect();
+    setBusy(false);
+    if (!res.ok) {
+      client.destroy();
+      reset();
+      setErr(res.error);
+      return;
+    }
+    setPeer(client);
+    router.push(`/room/${c}`);
   }
 
   return (

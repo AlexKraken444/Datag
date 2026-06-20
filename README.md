@@ -1,64 +1,59 @@
 # Datag — 2v2 Shadow Arena
 
-Соревновательная многопользовательская 2D-игра в формате **2 на 2**: один игрок управляет бойцом (**Tager**), второй — прожектором (**Lighter**), который отбрасывает динамическую тень на арену. Цель — наступить на тень вражеского Tager-а раньше, чем он наступит на твою.
+Соревновательная 2D-игра 2 на 2. Один игрок управляет бойцом (**Tager**), второй — прожектором (**Lighter**), который отбрасывает динамическую тень. Цель — наступить на тень вражеского Tager-а первым.
 
-- **Стек:** Next.js 15 (App Router), TypeScript, TailwindCSS, **PixiJS** (рендер), **Socket.IO** (реалтайм), **Zustand** (стейт), **Prisma + PostgreSQL** (история и лидерборд), Framer Motion (UI-анимации).
-- **Архитектура:** авторитарный сервер 60Hz, клиент не доверенный, любые попадания решает сервер.
+- **Стек:** Next.js 15 (App Router), TypeScript, TailwindCSS, **PixiJS** (рендер), **PeerJS / WebRTC** (p2p-реалтайм), **Zustand** (стейт), **Prisma + PostgreSQL** (история, опционально), Framer Motion.
+- **Архитектура:** host-authoritative. Браузер игрока, создавшего комнату, запускает симуляцию 60Hz и рассылает снапшоты остальным трём напрямую через WebRTC datachannel'ы.
+- **Деплой:** работает на **Vercel** без внешних серверов. PeerJS public broker используется только для рукопожатия WebRTC.
 
-## Запуск
+## Запуск локально
 
 ```bash
-# 1. зависимости
-npm install      # или pnpm / yarn / bun
-
-# 2. конфиг
+npm install
 cp .env.example .env
-
-# 3. (опционально) БД
-npx prisma generate
-npx prisma db push  # требует Postgres из DATABASE_URL
-
-# 4. запуск (next + socket.io на одном порту)
-npm run dev
+npm run dev       # http://localhost:3000
 ```
 
-Откройте `http://localhost:3000`. Создайте комнату → отправьте код второму игроку → распределите команды (A/B) и роли (TAGER/LIGHTER) → нажмите «Готов».
+База опциональна. Если хочешь лидерборд/историю:
+```bash
+# поднимаешь любой Postgres, указываешь DATABASE_URL в .env
+npx prisma db push
+```
 
-> Если PostgreSQL недоступен — игра прекрасно работает, просто без сохранения истории/лидерборда.
+## Деплой на Vercel
+
+1. Импортируй репозиторий в Vercel.
+2. (опционально) добавь Vercel Postgres / Neon / Supabase и переменную `DATABASE_URL`.
+3. Деплой запускается автоматически. Никаких WebSocket-серверов поднимать не нужно — игра работает p2p.
+
+Подробнее: [`DEPLOY.md`](DEPLOY.md).
 
 ## Структура проекта
 
-См. подробности в [`ARCHITECTURE.md`](ARCHITECTURE.md). Кратко:
+См. [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ```
-/app          — Next.js App Router (страницы, API)
-/components   — UI-компоненты
-/game         — клиентский игровой слой (PixiJS, рендер, ввод)
-/server       — авторитарный игровой сервер (Socket.IO, систёмы, БД)
-/stores       — Zustand-сторы
-/hooks        — React-хуки
-/lib          — чистая игровая математика (общий код клиент/сервер)
-/types        — общие типы
-/prisma       — Prisma schema
+/app             — страницы и API роуты
+/components      — UI
+/game/engine     — PixiJS-рендер
+/game/entities   — Pixi-обёртки сущностей
+/game/sim        — игровая симуляция (запускается у хоста в браузере)
+/game/host       — HostController, PeerClient, HostMatch, ICE-конфиг
+/game/systems    — InputSystem (сбор клавиш/мыши)
+/lib             — общая математика и константы
+/server/db       — Prisma (используется только API-роутами)
+/stores          — Zustand
+/types           — общие типы
+/prisma          — schema
 ```
-
-## Скрипты
-
-| команда            | назначение                                        |
-| ------------------ | ------------------------------------------------- |
-| `npm run dev`      | Next + Socket.IO в одном процессе (порт 3000)     |
-| `npm run build`    | сборка Next                                       |
-| `npm run start`    | продакшен                                         |
-| `npm run db:push`  | синхронизировать схему Prisma с базой             |
-| `npm run db:migrate` | dev-миграция                                    |
 
 ## Документация
 
 - [`GAME_RULES.md`](GAME_RULES.md) — правила, формулы теней, очки.
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — слои, системы, потоки данных.
-- [`MULTIPLAYER.md`](MULTIPLAYER.md) — события Socket.IO, мультиплеер, античит.
-- [`DEPLOY.md`](DEPLOY.md) — деплой (Docker / Render / Railway / VPS).
+- [`MULTIPLAYER.md`](MULTIPLAYER.md) — PeerJS-протокол, безопасность.
+- [`DEPLOY.md`](DEPLOY.md) — Vercel и альтернативы.
 
 ## Лицензия
 
-MIT. Развивайте как хотите.
+MIT.

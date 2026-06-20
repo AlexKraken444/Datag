@@ -6,9 +6,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "tsx server.ts",
+    "dev": "next dev",
     "build": "next build",
-    "start": "NODE_ENV=production tsx server.ts",
+    "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
@@ -18,13 +18,11 @@
     "@prisma/client": "^5.22.0",
     "framer-motion": "^11.11.0",
     "next": "^15.1.6",
+    "peerjs": "^1.5.4",
     "pixi.js": "^8.6.6",
     "prisma": "^5.22.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1",
-    "tsx": "^4.19.2",
     "zustand": "^5.0.1"
   },
   "devDependencies": {
