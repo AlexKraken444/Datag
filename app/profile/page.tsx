@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signOut, useSession } from "next-auth/react";
 import { Logo } from "@/components/ui/Logo";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -12,20 +13,39 @@ import { useProfileStore } from "@/stores/useProfileStore";
 import { nicknameValid } from "@/lib/code";
 
 export default function ProfilePage() {
+  const { data: session, status, update } = useSession();
   const profile = useProfileStore((s) => s.profile);
-  const setNickname = useProfileStore((s) => s.setNickname);
+  const setNicknameLocal = useProfileStore((s) => s.setNickname);
   const hardReset = useProfileStore((s) => s.hardReset);
   const addCoins = useProfileStore((s) => s.addCoins);
 
   const [nick, setNick] = useState(profile.nickname);
   const [editing, setEditing] = useState(!profile.nickname);
   const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  function save() {
+  const isAuthed = status === "authenticated";
+
+  async function save() {
     setErr(null);
     if (!nicknameValid(nick))
       return setErr("Ник: 2–16 символов: буквы/цифры/_/-");
-    setNickname(nick);
+    if (isAuthed) {
+      setBusy(true);
+      const res = await fetch("/api/profile/me", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ nickname: nick }),
+      });
+      const data = await res.json();
+      setBusy(false);
+      if (!data.ok) {
+        setErr(data.error || "Не получилось сохранить");
+        return;
+      }
+      await update({ nickname: nick });
+    }
+    setNicknameLocal(nick);
     setEditing(false);
   }
 
@@ -37,10 +57,52 @@ export default function ProfilePage() {
           <Link href="/" className="btn-ghost">← в меню</Link>
         </div>
 
+        {/* Account / auth status */}
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">Аккаунт</h2>
+          {status === "loading" && (
+            <div className="text-muted text-sm">Проверяем сессию…</div>
+          )}
+          {status === "unauthenticated" && (
+            <div className="flex flex-col gap-3">
+              <div className="text-sm text-muted">
+                Сейчас ты играешь как гость — баланс и апгрейды живут только в
+                этом браузере. Заведи аккаунт, чтобы хранить прогресс на
+                сервере и заходить с любого устройства.
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Link href="/register" className="btn-primary">
+                  Зарегистрироваться
+                </Link>
+                <Link href="/login" className="btn">Войти</Link>
+              </div>
+            </div>
+          )}
+          {status === "authenticated" && session?.user?.email && (
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <div className="text-sm text-muted">Email</div>
+                <div className="font-medium break-all">
+                  {session.user.email}
+                </div>
+                <div className="text-xs text-accent mt-1">
+                  ☁ Профиль синхронизируется с сервером
+                </div>
+              </div>
+              <Button
+                variant="danger"
+                onClick={() => signOut({ callbackUrl: "/" })}
+              >
+                Выйти
+              </Button>
+            </div>
+          )}
+        </Card>
+
         <ProfileCard />
 
         <Card className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">Профиль</h2>
+          <h2 className="text-lg font-semibold">Ник в игре</h2>
           {editing ? (
             <>
               <Input
@@ -52,8 +114,8 @@ export default function ProfilePage() {
               />
               {err && <div className="text-red text-sm">{err}</div>}
               <div className="flex gap-2">
-                <Button variant="primary" onClick={save}>
-                  Сохранить
+                <Button variant="primary" onClick={save} disabled={busy}>
+                  {busy ? "Сохраняем…" : "Сохранить"}
                 </Button>
                 {profile.nickname && (
                   <Button variant="ghost" onClick={() => setEditing(false)}>
@@ -61,13 +123,6 @@ export default function ProfilePage() {
                   </Button>
                 )}
               </div>
-              {!profile.nickname && (
-                <div className="text-xs text-muted">
-                  Это «регистрация» — ник, монеты и апгрейды сохраняются в этом
-                  браузере (localStorage). Серверного аккаунта пока нет, чтобы
-                  всё работало без авторизации.
-                </div>
-              )}
             </>
           ) : (
             <div className="flex items-center justify-between">
@@ -98,16 +153,16 @@ export default function ProfilePage() {
             <Button
               variant="danger"
               onClick={() => {
-                if (confirm("Сбросить профиль (ник, монеты, апгрейды)?"))
+                if (
+                  confirm(
+                    "Сбросить ЛОКАЛЬНЫЙ профиль? Серверный аккаунт это не удалит.",
+                  )
+                )
                   hardReset();
               }}
             >
-              Сбросить профиль
+              Сбросить локально
             </Button>
-          </div>
-          <div className="text-xs text-muted">
-            Кнопка «+100» нужна для проверки апгрейдов на старте. В реальной
-            игре монеты приходят только за очки в матчах.
           </div>
         </Card>
       </div>

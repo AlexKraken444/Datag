@@ -64,6 +64,8 @@ interface ProfileStore {
   resetUpgrades: () => void;
   hardReset: () => void;
   recordMatch: () => void;
+  /** Used by CloudSync to overwrite the local profile with the server one. */
+  setProfileFromCloud: (p: Partial<Profile>) => void;
 }
 
 export const useProfileStore = create<ProfileStore>((set, get) => ({
@@ -121,6 +123,24 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
     const next = {
       ...get().profile,
       matchesPlayed: get().profile.matchesPlayed + 1,
+    };
+    save(next);
+    set({ profile: next });
+  },
+
+  setProfileFromCloud: (p) => {
+    const cur = get().profile;
+    const next: Profile = {
+      ...cur,
+      nickname: p.nickname ?? cur.nickname,
+      coins: typeof p.coins === "number" ? Math.max(0, p.coins | 0) : cur.coins,
+      upgrades: Array.isArray(p.upgrades)
+        ? p.upgrades.filter((u): u is UpgradeId => u in UPGRADES)
+        : cur.upgrades,
+      matchesPlayed:
+        typeof p.matchesPlayed === "number"
+          ? Math.max(0, p.matchesPlayed | 0)
+          : cur.matchesPlayed,
     };
     save(next);
     set({ profile: next });

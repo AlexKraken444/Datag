@@ -4,9 +4,10 @@
 
 export function Footer() {
   return (
-    <footer className="px-4 py-3 text-center text-[11px] tracking-[0.35em] uppercase text-muted/70 select-none">
-      <span className="opacity-70">made by</span>{" "}
-      <span className="text-accent font-semibold">Nowkie</span>
+    <footer className="px-4 py-3 text-center text-[11px] tracking-[0.18em] uppercase text-muted/80 select-none">
+      Оригинальная идея от{" "}
+      <span className="text-ink font-semibold">Ильи Сецко</span>
+      <span className="text-accent font-semibold"> (Nowkie)</span>
     </footer>
   );
 }

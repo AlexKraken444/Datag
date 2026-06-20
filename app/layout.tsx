@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Footer } from "@/components/ui/Footer";
+import { AuthProviders } from "@/components/auth/AuthProviders";
 
 export const metadata: Metadata = {
   title: "Datag — 2v2 shadow arena",
@@ -25,8 +26,10 @@ export default function RootLayout({
   return (
     <html lang="ru" className="dark">
       <body className="min-h-screen flex flex-col">
-        <main className="flex-1 flex flex-col min-h-0">{children}</main>
-        <Footer />
+        <AuthProviders>
+          <main className="flex-1 flex flex-col min-h-0">{children}</main>
+          <Footer />
+        </AuthProviders>
       </body>
     </html>
   );

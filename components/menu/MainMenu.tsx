@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { signOut, useSession } from "next-auth/react";
 import { Logo } from "@/components/ui/Logo";
 import { ProfileCard } from "@/components/profile/ProfileCard";
 import { useProfileStore } from "@/stores/useProfileStore";
 
-const items = [
+const mainItems = [
   { href: "/create", label: "Создать комнату", hot: true },
   { href: "/join", label: "Подключиться по коду" },
   { href: "/profile", label: "Профиль и прокачка" },
@@ -17,8 +18,10 @@ const items = [
 
 export function MainMenu() {
   const isRegistered = useProfileStore((s) => s.isRegistered());
+  const { data: session, status } = useSession();
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 gap-6">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-6 gap-5">
       <Logo size={88} />
       <motion.p
         initial={{ opacity: 0 }}
@@ -30,11 +33,32 @@ export function MainMenu() {
         бойцом, другой — прожектором. Наступи на тень врага.
       </motion.p>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md flex flex-col gap-2">
         <ProfileCard compact />
+        {status === "authenticated" && session?.user?.email ? (
+          <div className="flex items-center justify-between text-xs text-muted">
+            <span>
+              ☁ {session.user.email}
+            </span>
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="text-muted hover:text-ink underline"
+            >
+              выйти
+            </button>
+          </div>
+        ) : status === "unauthenticated" ? (
+          <div className="flex items-center justify-center gap-3 text-sm">
+            <Link href="/login" className="text-accent underline">Войти</Link>
+            <span className="text-muted">·</span>
+            <Link href="/register" className="text-accent underline">
+              Регистрация
+            </Link>
+          </div>
+        ) : null}
       </div>
 
-      {!isRegistered && (
+      {!isRegistered && status !== "authenticated" && (
         <Link
           href="/profile"
           className="text-sm text-accent underline hover:no-underline"
@@ -44,7 +68,7 @@ export function MainMenu() {
       )}
 
       <div className="w-full max-w-md flex flex-col gap-3">
-        {items.map((it, i) => (
+        {mainItems.map((it, i) => (
           <motion.div
             key={it.href}
             initial={{ opacity: 0, y: 6 }}

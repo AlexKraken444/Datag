@@ -8,21 +8,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ---- Auth + cloud-saved profile ----
+
 model User {
-  id        String   @id @default(cuid())
-  nickname  String   @unique
-  createdAt DateTime @default(now())
-  matches   MatchPlayer[]
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  nickname      String   @unique
+  coins         Int      @default(0)
+  upgrades      String[] @default([]) // upgrade ids the user has bought
+  matchesPlayed Int      @default(0)
+  createdAt     DateTime @default(now())
+  matches       MatchPlayer[]
 }
 
+// ---- Match history & leaderboard ----
+
 model Match {
-  id         String   @id @default(cuid())
+  id         String        @id @default(cuid())
   roomCode   String
-  startedAt  DateTime @default(now())
+  startedAt  DateTime      @default(now())
   finishedAt DateTime?
-  scoreA     Int      @default(0)
-  scoreB     Int      @default(0)
-  winner     String?  // "A" | "B" | "DRAW"
+  scoreA     Int           @default(0)
+  scoreB     Int           @default(0)
+  winner     String?       // "A" | "B" | "DRAW"
   players    MatchPlayer[]
 }
 
@@ -39,10 +48,10 @@ model MatchPlayer {
 }
 
 model Leaderboard {
-  nickname String @id
-  wins     Int    @default(0)
-  losses   Int    @default(0)
-  hits     Int    @default(0)
-  matches  Int    @default(0)
+  nickname  String   @id
+  wins      Int      @default(0)
+  losses    Int      @default(0)
+  hits      Int      @default(0)
+  matches   Int      @default(0)
   updatedAt DateTime @updatedAt
 }
