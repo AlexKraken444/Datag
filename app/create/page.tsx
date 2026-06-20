@@ -10,17 +10,19 @@ import { Logo } from "@/components/ui/Logo";
 import { useRealtimeStore } from "@/stores/useRealtimeStore";
 import { useRoomStore } from "@/stores/useRoomStore";
 import { useGameStore } from "@/stores/useGameStore";
+import { useProfileStore } from "@/stores/useProfileStore";
 import { generateRoomCode, nicknameValid } from "@/lib/code";
+import { awardCoinsToProfile } from "@/lib/awardCoins";
 
 export default function CreateRoomPage() {
   const router = useRouter();
   const setHost = useRealtimeStore((s) => s.setHost);
   const reset = useRealtimeStore((s) => s.reset);
-  const nickname = useRoomStore((s) => s.nickname);
-  const setNickname = useRoomStore((s) => s.setNickname);
+  const profile = useProfileStore((s) => s.profile);
+  const setProfileNickname = useProfileStore((s) => s.setNickname);
   const setRoom = useRoomStore((s) => s.setRoom);
   const pushChat = useRoomStore((s) => s.pushChat);
-  const [nick, setNick] = useState(nickname || "");
+  const [nick, setNick] = useState(profile.nickname || "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -29,7 +31,7 @@ export default function CreateRoomPage() {
     if (!nicknameValid(nick))
       return setErr("Ник: 2–16 символов: буквы/цифры/_/-");
     setBusy(true);
-    setNickname(nick);
+    setProfileNickname(nick);
 
     const { HostController } = await import("@/game/host/HostController");
     // try up to 3 codes in case of collision
@@ -47,10 +49,13 @@ export default function CreateRoomPage() {
         onSnapshot: (snap) => useGameStore.getState().setSnapshot(snap),
         onRoundEnd: (e) =>
           useGameStore.getState().setLastRoundEnd({ ...e, ts: Date.now() }),
-        onMatchEnd: (sum) => useGameStore.getState().setSummary(sum),
+        onMatchEnd: (sum) => {
+          useGameStore.getState().setSummary(sum);
+          awardCoinsToProfile(sum);
+        },
         onError: (msg) => setErr(msg),
       });
-      const res = await candidate.init(nick);
+      const res = await candidate.init(nick, profile.upgrades, profile.coins);
       if (res.ok) {
         host = candidate;
         break;

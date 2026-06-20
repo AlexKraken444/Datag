@@ -27,6 +27,10 @@ export interface TagerState {
   stamina: number;
   inStartZone: boolean;
   alive: boolean;
+  /** Remaining shadow-hit absorption charges for this round. Normally 1; */
+  /** EXTRA_LIFE upgrade makes it start at 2. */
+  hp: number;
+  maxHp: number;
 }
 
 export interface LighterState {
@@ -70,12 +74,16 @@ export interface GameSnapshot {
 }
 
 export interface LobbyPlayer {
-  id: string;         // socket id
+  id: string;         // peer id
   nickname: string;
   team: Team | null;
   role: Role | null;
   ready: boolean;
   connected: boolean;
+  /** Upgrade ids the player brings into the match. */
+  upgrades: string[];
+  /** Tag-coin balance carried into this match (cosmetic, shown in lobby). */
+  coins: number;
 }
 
 export interface RoomState {
@@ -100,5 +108,13 @@ export interface MatchSummary {
   scoreB: number;
   winner: Team | "DRAW";
   finishedAt: number;
-  players: { nickname: string; team: Team; role: Role; hits: number }[];
+  players: {
+    id: string;            // peer id — used by clients to find their own coins
+    nickname: string;
+    team: Team;
+    role: Role;
+    hits: number;
+    /** Tag-coins earned in this match (= hits). */
+    coinsEarned: number;
+  }[];
 }

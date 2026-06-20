@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TeamPanel } from "@/components/lobby/TeamPanel";
 import { ChatBox } from "@/components/lobby/ChatBox";
+import { UpgradeTree } from "@/components/upgrades/UpgradeTree";
+import { ProfileCard } from "@/components/profile/ProfileCard";
 import { useRealtimeStore } from "@/stores/useRealtimeStore";
 import { useRoomStore } from "@/stores/useRoomStore";
 import type { Role, Team } from "@/types/game";
@@ -110,6 +112,17 @@ export default function RoomPage() {
             <ChatBox messages={room.chat} onSend={onChatSend} />
           </div>
           <TeamPanel team="B" players={room.players} meId={meId} onSelect={onSelect} />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
+          <ProfileCard compact />
+          <Card>
+            <UpgradeTree compact />
+            <div className="text-xs text-muted mt-3">
+              Купленные апгрейды отправятся в этот матч автоматически. Чтобы
+              новый апгрейд применился — он должен быть куплен ДО старта.
+            </div>
+          </Card>
         </div>
       </div>
     </div>

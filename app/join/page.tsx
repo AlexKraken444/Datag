@@ -10,17 +10,19 @@ import { Logo } from "@/components/ui/Logo";
 import { useRealtimeStore } from "@/stores/useRealtimeStore";
 import { useRoomStore } from "@/stores/useRoomStore";
 import { useGameStore } from "@/stores/useGameStore";
+import { useProfileStore } from "@/stores/useProfileStore";
 import { nicknameValid } from "@/lib/code";
+import { awardCoinsToProfile } from "@/lib/awardCoins";
 
 export default function JoinRoomPage() {
   const router = useRouter();
   const setPeer = useRealtimeStore((s) => s.setPeer);
   const reset = useRealtimeStore((s) => s.reset);
-  const nickname = useRoomStore((s) => s.nickname);
-  const setNickname = useRoomStore((s) => s.setNickname);
+  const profile = useProfileStore((s) => s.profile);
+  const setProfileNickname = useProfileStore((s) => s.setNickname);
   const setRoom = useRoomStore((s) => s.setRoom);
   const pushChat = useRoomStore((s) => s.pushChat);
-  const [nick, setNick] = useState(nickname || "");
+  const [nick, setNick] = useState(profile.nickname || "");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -32,31 +34,39 @@ export default function JoinRoomPage() {
     const c = code.trim().toUpperCase();
     if (c.length < 4) return setErr("Введи код комнаты");
     setBusy(true);
-    setNickname(nick);
+    setProfileNickname(nick);
 
     const { PeerClient } = await import("@/game/host/PeerClient");
-    const client = new PeerClient(c, nick, {
-      onWelcome: () => {/* welcomed */},
-      onRoom: (state) => setRoom(state),
-      onChat: (m) => pushChat(m),
-      onMatchStart: () => {
-        useGameStore.getState().reset();
-        router.push(`/game/${c}`);
+    const client = new PeerClient(
+      c,
+      nick,
+      {
+        onWelcome: () => {/* welcomed */},
+        onRoom: (state) => setRoom(state),
+        onChat: (m) => pushChat(m),
+        onMatchStart: () => {
+          useGameStore.getState().reset();
+          router.push(`/game/${c}`);
+        },
+        onSnapshot: (snap) => useGameStore.getState().setSnapshot(snap),
+        onRoundEnd: (e) =>
+          useGameStore.getState().setLastRoundEnd({ ...e, ts: Date.now() }),
+        onMatchEnd: (sum) => {
+          useGameStore.getState().setSummary(sum);
+          awardCoinsToProfile(sum);
+        },
+        onKicked: (reason) => {
+          reset();
+          setRoom(null);
+          setErr(reason);
+          router.push("/");
+        },
+        onError: (msg) => setErr(msg),
+        onConnected: () => {/* noop */},
+        onDisconnected: () => {/* keep showing what we have */},
       },
-      onSnapshot: (snap) => useGameStore.getState().setSnapshot(snap),
-      onRoundEnd: (e) =>
-        useGameStore.getState().setLastRoundEnd({ ...e, ts: Date.now() }),
-      onMatchEnd: (sum) => useGameStore.getState().setSummary(sum),
-      onKicked: (reason) => {
-        reset();
-        setRoom(null);
-        setErr(reason);
-        router.push("/");
-      },
-      onError: (msg) => setErr(msg),
-      onConnected: () => {/* noop */},
-      onDisconnected: () => {/* keep showing what we have */},
-    });
+      { upgrades: profile.upgrades, coins: profile.coins },
+    );
 
     const res = await client.connect();
     setBusy(false);

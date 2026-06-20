@@ -1,25 +1,19 @@
 "use client";
 
+// Datag — current room state and chat. Nickname now lives in useProfileStore
+// (persistent across sessions). This store holds only the ephemeral room
+// snapshot the active connection feeds in.
+
 import { create } from "zustand";
 import type { ChatMessage, RoomState } from "@/types/game";
 
 interface RoomStore {
-  nickname: string;
-  setNickname: (n: string) => void;
   room: RoomState | null;
   setRoom: (r: RoomState | null) => void;
   pushChat: (m: ChatMessage) => void;
 }
 
 export const useRoomStore = create<RoomStore>((set) => ({
-  nickname:
-    (typeof window !== "undefined" &&
-      window.localStorage.getItem("datag.nick")) ||
-    "",
-  setNickname: (n) => {
-    if (typeof window !== "undefined") window.localStorage.setItem("datag.nick", n);
-    set({ nickname: n });
-  },
   room: null,
   setRoom: (r) => set({ room: r }),
   pushChat: (m) =>

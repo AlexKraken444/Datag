@@ -20,6 +20,8 @@ export interface ShadowInputs {
   lightAim: Vec2;
   brightness: number;
   tagerPos: Vec2;
+  /** Optional length penalty (px) applied to the final shadow — SHADOW_SHORT upgrade. */
+  shorterBy?: number;
 }
 
 /**
@@ -42,6 +44,7 @@ export function computeShadow(inp: ShadowInputs): ShadowPoly {
   // length grows with brightness and distance; clamped.
   let length =
     SHADOW.BASE_LENGTH * inp.brightness * (1 + d / SHADOW.DIST_SCALE);
+  if (inp.shorterBy) length -= inp.shorterBy;
   length = clamp(length, SHADOW.MIN_LENGTH, SHADOW.MAX_LENGTH);
 
   const farLeft = add(left, mul(n, length));

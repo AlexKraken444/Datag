@@ -2,10 +2,13 @@
 
 import { Container, Graphics } from "pixi.js";
 import { COLORS, LIGHTER } from "@/lib/constants";
-import type { LighterState } from "@/types/game";
+import type { LighterState, Vec2 } from "@/types/game";
 
 export class LighterSprite extends Container {
   private body = new Graphics();
+  private targetPos: Vec2 = { x: 0, y: 0 };
+  private currentPos: Vec2 = { x: 0, y: 0 };
+  private initialised = false;
 
   constructor(public team: "A" | "B") {
     super();
@@ -27,7 +30,20 @@ export class LighterSprite extends Container {
     });
   }
 
-  update(state: LighterState) {
-    this.position.set(state.pos.x, state.pos.y);
+  syncFromState(state: LighterState) {
+    this.targetPos = { x: state.pos.x, y: state.pos.y };
+    if (!this.initialised) {
+      this.currentPos = { ...this.targetPos };
+      this.position.set(this.currentPos.x, this.currentPos.y);
+      this.initialised = true;
+    }
+  }
+
+  tick(deltaMS: number) {
+    if (!this.initialised) return;
+    const k = 1 - Math.exp(-deltaMS / 70);
+    this.currentPos.x += (this.targetPos.x - this.currentPos.x) * k;
+    this.currentPos.y += (this.targetPos.y - this.currentPos.y) * k;
+    this.position.set(this.currentPos.x, this.currentPos.y);
   }
 }

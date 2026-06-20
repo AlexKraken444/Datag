@@ -15,7 +15,7 @@ import type {
 // ---------- peer (joiner) → host ----------
 
 export type PeerToHost =
-  | { t: "hello"; nickname: string }
+  | { t: "hello"; nickname: string; upgrades: string[]; coins: number }
   | { t: "select"; team: Team; role: Role }
   | { t: "ready"; ready: boolean }
   | { t: "start" }                              // ignored unless sender is host

@@ -70,6 +70,7 @@ export function GameCanvas() {
       window.removeEventListener("resize", onResize);
       unsubSnap();
       input.stop();
+      renderer.destroy();
       pixi.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

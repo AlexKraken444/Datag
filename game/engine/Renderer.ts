@@ -1,6 +1,8 @@
 "use client";
 
-// Datag — interprets server snapshots into Pixi scene mutations.
+// Datag — interprets host snapshots into Pixi scene mutations.
+// Snapshots arrive at ~30Hz; cone + lighter positions interpolate every
+// PIXI frame via a ticker callback for 60fps smooth movement.
 
 import { Graphics } from "pixi.js";
 import type { PixiApp } from "./PixiApp";
@@ -27,6 +29,7 @@ export class Renderer {
     shadows: { A: new ShadowPolygon("A"), B: new ShadowPolygon("B") },
   };
   private nicks: Record<string, string> = {};
+  private tickerFn: ((t: { deltaMS: number }) => void) | null = null;
 
   constructor(private app: PixiApp) {}
 
@@ -40,6 +43,16 @@ export class Renderer {
     drawArena(this.bg);
     this.app.layers.shadows.addChild(this.sprites.shadows.A);
     this.app.layers.shadows.addChild(this.sprites.shadows.B);
+
+    // per-frame interpolation
+    this.tickerFn = (t) => {
+      const dt = t.deltaMS;
+      for (const [, e] of this.sprites.lighters) {
+        e.sp.tick(dt);
+        e.cone.tick(dt);
+      }
+    };
+    this.app.app.ticker.add(this.tickerFn);
     this.bgDrawn = true;
   }
 
@@ -66,7 +79,7 @@ export class Renderer {
       }
     }
 
-    // lighters + cones
+    // lighters + cones — push targets, ticker handles smooth motion
     const seenL = new Set<string>();
     for (const l of snapshot.lighters) {
       seenL.add(l.id);
@@ -79,8 +92,8 @@ export class Renderer {
         entry = { sp, cone, team: l.team };
         this.sprites.lighters.set(l.id, entry);
       }
-      entry.sp.update(l);
-      entry.cone.update(l);
+      entry.sp.syncFromState(l);
+      entry.cone.syncFromState(l);
     }
     for (const [id, e] of this.sprites.lighters) {
       if (!seenL.has(id)) {
@@ -90,7 +103,7 @@ export class Renderer {
       }
     }
 
-    // shadows — figure out "danger" per team (is enemy Tager standing on it)
+    // shadows — flag "danger" if enemy Tager is standing on it (red outline)
     for (const sh of snapshot.shadows) {
       const enemy = snapshot.tagers.find((t) => t.team !== sh.team);
       const danger = enemy ? tagerInShadow(enemy.pos, sh) : false;
@@ -99,6 +112,7 @@ export class Renderer {
   }
 
   destroy() {
-    /* PixiApp.destroy handles children */
+    if (this.tickerFn) this.app.app.ticker.remove(this.tickerFn);
+    this.tickerFn = null;
   }
 }

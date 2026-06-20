@@ -3,18 +3,22 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Logo } from "@/components/ui/Logo";
+import { ProfileCard } from "@/components/profile/ProfileCard";
+import { useProfileStore } from "@/stores/useProfileStore";
 
 const items = [
   { href: "/create", label: "Создать комнату", hot: true },
   { href: "/join", label: "Подключиться по коду" },
+  { href: "/profile", label: "Профиль и прокачка" },
   { href: "/leaderboard", label: "Лидерборд" },
   { href: "/history", label: "История матчей" },
   { href: "/settings", label: "Настройки" },
 ];
 
 export function MainMenu() {
+  const isRegistered = useProfileStore((s) => s.isRegistered());
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 gap-8">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 gap-6">
       <Logo size={88} />
       <motion.p
         initial={{ opacity: 0 }}
@@ -25,6 +29,19 @@ export function MainMenu() {
         Командная 2v2-арена с динамическими тенями. Один игрок управляет
         бойцом, другой — прожектором. Наступи на тень врага.
       </motion.p>
+
+      <div className="w-full max-w-md">
+        <ProfileCard compact />
+      </div>
+
+      {!isRegistered && (
+        <Link
+          href="/profile"
+          className="text-sm text-accent underline hover:no-underline"
+        >
+          Создай ник в профиле, чтобы начать
+        </Link>
+      )}
 
       <div className="w-full max-w-md flex flex-col gap-3">
         {items.map((it, i) => (

@@ -4,13 +4,13 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { Card } from "@/components/ui/Card";
 import { useSettingsStore } from "@/stores/useSettingsStore";
-import { useRoomStore } from "@/stores/useRoomStore";
+import { useProfileStore } from "@/stores/useProfileStore";
 import { Button } from "@/components/ui/Button";
 
 export default function SettingsPage() {
   const s = useSettingsStore();
-  const nickname = useRoomStore((x) => x.nickname);
-  const setNickname = useRoomStore((x) => x.setNickname);
+  const nickname = useProfileStore((x) => x.profile.nickname);
+  const setNickname = useProfileStore((x) => x.setNickname);
 
   return (
     <div className="min-h-screen px-4 py-6">
@@ -23,13 +23,20 @@ export default function SettingsPage() {
           <h1 className="text-xl font-semibold">Настройки</h1>
 
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">Ник по умолчанию</span>
+            <span className="text-muted">Ник (из профиля)</span>
             <input
               className="input"
               defaultValue={nickname}
               onBlur={(e) => setNickname(e.target.value)}
               maxLength={16}
             />
+            <span className="text-xs text-muted">
+              Полный профиль и прокачка —{" "}
+              <Link href="/profile" className="text-accent underline">
+                на странице профиля
+              </Link>
+              .
+            </span>
           </label>
 
           <label className="flex items-center justify-between text-sm">

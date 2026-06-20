@@ -54,7 +54,11 @@ export class HostController {
   ) {}
 
   /** Initialize PeerJS peer with id = roomCode (so joiners can dial it directly). */
-  async init(myNickname: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  async init(
+    myNickname: string,
+    myUpgrades: string[] = [],
+    myCoins = 0,
+  ): Promise<{ ok: true } | { ok: false; error: string }> {
     return await new Promise((resolve) => {
       let done = false;
       const finish = (r: { ok: true } | { ok: false; error: string }) => {
@@ -75,6 +79,8 @@ export class HostController {
           role: null,
           ready: false,
           connected: true,
+          upgrades: [...myUpgrades],
+          coins: myCoins | 0,
         });
         this.pushSystem(`${myNickname} создал комнату`);
         this.broadcastRoom();
@@ -160,7 +166,7 @@ export class HostController {
   private handleMessage(peerId: string, msg: PeerToHost) {
     switch (msg.t) {
       case "hello":
-        this.applyHello(peerId, msg.nickname);
+        this.applyHello(peerId, msg.nickname, msg.upgrades, msg.coins);
         break;
       case "select":
         this.applySelect(peerId, msg.team, msg.role);
@@ -182,7 +188,12 @@ export class HostController {
 
   // ---------- lobby logic (same as old Room.ts, but local) ----------
 
-  private applyHello(peerId: string, nickname: string) {
+  private applyHello(
+    peerId: string,
+    nickname: string,
+    upgrades: string[] = [],
+    coins = 0,
+  ) {
     // sticky-by-nickname reconnect
     const existing = [...this.players.values()].find(
       (p) => p.nickname === nickname && p.id !== peerId,
@@ -191,6 +202,9 @@ export class HostController {
       this.players.delete(existing.id);
       existing.id = peerId;
       existing.connected = true;
+      // refresh upgrades/coins on rejoin (player might have bought new ones)
+      existing.upgrades = [...upgrades];
+      existing.coins = coins | 0;
       this.players.set(peerId, existing);
     } else if (!this.players.has(peerId)) {
       if (this.players.size >= MAX_PLAYERS) {
@@ -205,6 +219,8 @@ export class HostController {
         role: null,
         ready: false,
         connected: true,
+        upgrades: [...upgrades],
+        coins: coins | 0,
       });
       this.pushSystem(`${nickname} зашёл в комнату`);
     }
@@ -274,7 +290,13 @@ export class HostController {
     const seats: Seat[] = [];
     for (const p of this.players.values()) {
       if (p.team && p.role)
-        seats.push({ id: p.id, team: p.team, role: p.role, nickname: p.nickname });
+        seats.push({
+          id: p.id,
+          team: p.team,
+          role: p.role,
+          nickname: p.nickname,
+          upgrades: [...p.upgrades],
+        });
     }
     const startsAt = Date.now() + 1500;
     this.broadcastAll({ t: "match_start", startsAt });

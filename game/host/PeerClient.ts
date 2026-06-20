@@ -47,6 +47,10 @@ export class PeerClient {
     public readonly roomCode: string,
     public readonly nickname: string,
     private cb: PeerCallbacks,
+    private readonly profile: { upgrades: string[]; coins: number } = {
+      upgrades: [],
+      coins: 0,
+    },
   ) {}
 
   /** Connect to host. Resolves once the data channel is open. */
@@ -68,7 +72,12 @@ export class PeerClient {
         c.on("open", () => {
           if (resolved) return;
           resolved = true;
-          c.send({ t: "hello", nickname: this.nickname } as PeerToHost);
+          c.send({
+            t: "hello",
+            nickname: this.nickname,
+            upgrades: this.profile.upgrades,
+            coins: this.profile.coins,
+          } as PeerToHost);
           this.cb.onConnected();
           resolve({ ok: true });
         });

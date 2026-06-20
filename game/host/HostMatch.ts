@@ -21,12 +21,14 @@ import { CollisionSystem } from "@/game/sim/CollisionSystem";
 import { ScoreSystem } from "@/game/sim/ScoreSystem";
 import { RoundSystem } from "@/game/sim/RoundSystem";
 import { LIGHTER, ROUND, TAGER } from "@/lib/constants";
+import { UPGRADE_EFFECTS } from "@/lib/upgrades";
 
 export interface Seat {
   id: string;        // peerId / clientId
   team: Team;
   role: Role;
   nickname: string;
+  upgrades: string[];
 }
 
 export interface MatchEvents {
@@ -45,6 +47,10 @@ export class HostMatch {
   private lighters: LighterState[] = [];
   private inputs = new Map<string, PlayerInput>();
   private hits = new Map<string, number>();
+  /** Per-seat upgrade set (peerId -> Set<upgradeId>). */
+  private upgrades = new Map<string, Set<string>>();
+  /** Rising-edge bookkeeping: was the tager standing on enemy shadow last tick. */
+  private wasOnShadow = new Map<string, boolean>();
   private postUntil = 0;
   private startedAt = Date.now();
 
@@ -62,7 +68,13 @@ export class HostMatch {
     private events: MatchEvents,
   ) {
     for (const s of seats) {
+      const seatUpgrades = new Set<string>(s.upgrades);
+      this.upgrades.set(s.id, seatUpgrades);
+
       if (s.role === "TAGER") {
+        const maxHp = seatUpgrades.has("EXTRA_LIFE")
+          ? UPGRADE_EFFECTS.EXTRA_LIFE_HP
+          : 1;
         this.tagers.push({
           id: s.id,
           team: s.team,
@@ -71,6 +83,8 @@ export class HostMatch {
           stamina: TAGER.SPRINT_STAMINA_MAX,
           inStartZone: true,
           alive: true,
+          hp: maxHp,
+          maxHp,
         });
       } else {
         this.lighters.push({
@@ -95,6 +109,7 @@ export class HostMatch {
   start() {
     this.roundSys.respawn(this.tagers, this.lighters);
     this.roundSys.beginCountdown();
+    this.wasOnShadow.clear();
     this.loop.start();
   }
 
@@ -113,7 +128,7 @@ export class HostMatch {
       tick: this.tick,
       tagers: this.tagers,
       lighters: this.lighters,
-      shadows: this.shadowSys.compute(this.tagers, this.lighters),
+      shadows: this.shadowSys.compute(this.tagers, this.lighters, this.upgrades),
       round: this.roundSys.state,
       score: this.scoreSys.state,
     };
@@ -127,7 +142,11 @@ export class HostMatch {
 
     for (const t of this.tagers) {
       const seatIn = active ? this.inputs.get(t.id) ?? null : null;
-      this.playerSys.step(t, seatIn);
+      this.playerSys.step(
+        t,
+        seatIn,
+        this.upgrades.get(t.id) ?? new Set(),
+      );
     }
     for (const l of this.lighters) {
       this.lightSys.step(l, this.inputs.get(l.id) ?? null);
@@ -138,6 +157,7 @@ export class HostMatch {
       this.roundSys.state.countdownLeftMs <= 0
     ) {
       this.roundSys.enterPlay();
+      this.wasOnShadow.clear();
     }
     if (
       this.roundSys.state.phase === "PLAY" &&
@@ -147,18 +167,41 @@ export class HostMatch {
     }
 
     if (active) {
-      const shadows = this.shadowSys.compute(this.tagers, this.lighters);
+      const shadows = this.shadowSys.compute(
+        this.tagers,
+        this.lighters,
+        this.upgrades,
+      );
       const events = this.collisionSys.detect(this.tagers, shadows);
 
-      if (events.length >= 2) {
+      // events: { scoringTeam } — the team whose Tager IS standing on the
+      // enemy shadow this tick. We collapse to per-attacker rising-edges so
+      // a tager standing inside a shadow drains exactly one HP per entry.
+      const scored: { team: Team; bonus: boolean }[] = [];
+      for (const attacker of this.tagers) {
+        const hitting = events.some((e) => e.scoringTeam === attacker.team);
+        const was = this.wasOnShadow.get(attacker.id) ?? false;
+        this.wasOnShadow.set(attacker.id, hitting);
+        if (!hitting || was) continue;
+
+        const enemyTeam: Team = attacker.team === "A" ? "B" : "A";
+        const victim = this.tagers.find((t) => t.team === enemyTeam);
+        if (!victim) continue;
+
+        victim.hp -= 1;
+        if (victim.hp <= 0) {
+          const bonus = victim.inStartZone;
+          scored.push({ team: attacker.team, bonus });
+          this.hits.set(attacker.id, (this.hits.get(attacker.id) ?? 0) + 1);
+        }
+      }
+
+      if (scored.length >= 2) {
         this.endRoundDraw();
-      } else if (events.length === 1) {
-        const e = events[0];
-        const bonus = e.victimWasInStartZone;
-        this.scoreSys.award(e.scoringTeam, bonus);
-        const tager = this.tagers.find((t) => t.team === e.scoringTeam);
-        if (tager) this.hits.set(tager.id, (this.hits.get(tager.id) ?? 0) + 1);
-        this.endRoundScored(e.scoringTeam, bonus);
+      } else if (scored.length === 1) {
+        const e = scored[0];
+        this.scoreSys.award(e.team, e.bonus);
+        this.endRoundScored(e.team, e.bonus);
       }
     }
 
@@ -171,6 +214,7 @@ export class HostMatch {
       } else {
         this.roundSys.respawn(this.tagers, this.lighters);
         this.roundSys.beginCountdown();
+        this.wasOnShadow.clear();
       }
     }
   }
@@ -210,12 +254,24 @@ export class HostMatch {
       scoreB: this.scoreSys.state.B,
       winner,
       finishedAt: Date.now(),
-      players: this.seats.map((s) => ({
-        nickname: s.nickname,
-        team: s.team,
-        role: s.role,
-        hits: this.hits.get(s.id) ?? 0,
-      })),
+      players: this.seats.map((s) => {
+        // coins = personal hits. Lighters don't score directly; we award their
+        // share = same as their team's Tager hits (cooperative bonus).
+        const tagerHits =
+          this.hits.get(
+            this.tagers.find((t) => t.team === s.team)?.id ?? "",
+          ) ?? 0;
+        const personalHits =
+          s.role === "TAGER" ? this.hits.get(s.id) ?? 0 : tagerHits;
+        return {
+          id: s.id,
+          nickname: s.nickname,
+          team: s.team,
+          role: s.role,
+          hits: personalHits,
+          coinsEarned: personalHits,
+        };
+      }),
     };
 
     this.events.onMatchEnd(summary);

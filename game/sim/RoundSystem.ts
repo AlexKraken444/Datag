@@ -52,6 +52,7 @@ export class RoundSystem {
       t.stamina = TAGER.SPRINT_STAMINA_MAX;
       t.inStartZone = true;
       t.alive = true;
+      t.hp = t.maxHp;
     }
     for (const l of lighters) {
       const s = LighterSpawn[l.team];

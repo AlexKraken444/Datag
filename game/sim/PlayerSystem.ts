@@ -1,17 +1,18 @@
 // Datag — Tager movement (authoritative).
 //
 // Inputs are clamped: moveX/moveY must form a unit-or-less vector. Sprint
-// drains stamina; we never trust client position.
+// drains stamina; we never trust client position. Upgrades are passed as a
+// set of ids so the system stays decoupled from the profile schema.
 
 import { ARENA, TAGER, TICK } from "@/lib/constants";
 import { clamp } from "@/lib/geometry";
 import type { PlayerInput, TagerState } from "@/types/game";
 import { isInTagerZone } from "@/lib/zones";
+import { UPGRADE_EFFECTS } from "@/lib/upgrades";
 
 export class PlayerSystem {
-  step(t: TagerState, input: PlayerInput | null) {
+  step(t: TagerState, input: PlayerInput | null, upgrades: Set<string>) {
     if (!input) {
-      // gentle stamina regen
       t.stamina = Math.min(
         TAGER.SPRINT_STAMINA_MAX,
         t.stamina + TAGER.SPRINT_REGEN * TICK.DT,
@@ -25,8 +26,10 @@ export class PlayerSystem {
     const dy = my / mag;
 
     const wantSprint = !!input.sprint && t.stamina > 0;
-    const speed =
-      TAGER.SPEED * (wantSprint ? TAGER.SPRINT_MULT : 1);
+    const baseSpeed =
+      TAGER.SPEED *
+      (upgrades.has("SPEED_BOOST") ? UPGRADE_EFFECTS.SPEED_MULT : 1);
+    const speed = baseSpeed * (wantSprint ? TAGER.SPRINT_MULT : 1);
 
     t.vel.x = dx * speed * (mx || my ? 1 : 0);
     t.vel.y = dy * speed * (mx || my ? 1 : 0);
