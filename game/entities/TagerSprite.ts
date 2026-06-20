@@ -6,12 +6,12 @@ import type { TagerState } from "@/types/game";
 
 export class TagerSprite extends Container {
   private body = new Graphics();
-  private label: Text;
+  private nickLabel: Text;
 
   constructor(public team: "A" | "B", nick: string) {
     super();
     this.addChild(this.body);
-    this.label = new Text({
+    this.nickLabel = new Text({
       text: nick,
       style: {
         fill: 0xffffff,
@@ -20,8 +20,8 @@ export class TagerSprite extends Container {
         align: "center",
       },
     });
-    this.label.anchor.set(0.5, 1.4);
-    this.addChild(this.label);
+    this.nickLabel.anchor.set(0.5, 1.4);
+    this.addChild(this.nickLabel);
     this.draw(false);
   }
 
