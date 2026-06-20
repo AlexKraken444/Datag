@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — wraps the tree with Auth.js SessionProvider and runs CloudSync
+// Datak — wraps the tree with Auth.js SessionProvider and runs CloudSync
 // so logged-in users have their profile auto-synced to the server.
 
 import { SessionProvider } from "next-auth/react";

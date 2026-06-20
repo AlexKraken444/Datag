@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — Pixi mount. Subscribes to useGameStore for snapshots (filled by
+// Datak — Pixi mount. Subscribes to useGameStore for snapshots (filled by
 // the active HostController/PeerClient), drives an InputSystem that calls
 // useRealtimeStore.input() with the unified send API. On touch devices,
 // renders a virtual joystick + action buttons that feed into the same

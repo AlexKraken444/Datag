@@ -1,4 +1,4 @@
-// Datag — Lighter movement (perimeter ring) and free aim.
+// Datak — Lighter movement (perimeter ring) and free aim.
 //
 // The Lighter slides around the entire arena perimeter; WASD moves both axes
 // and the ring clamp keeps the Lighter outside the arena interior. Aim is

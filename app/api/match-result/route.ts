@@ -1,4 +1,4 @@
-// Datag — best-effort match persistence. Called by the HOST browser after a
+// Datak — best-effort match persistence. Called by the HOST browser after a
 // match ends; never trusted for authoritative scoring (host could lie). Used
 // only to populate leaderboard/history when a DB is configured.
 

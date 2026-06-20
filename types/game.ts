@@ -1,4 +1,4 @@
-// Datag — core game types shared between client and server.
+// Datak — core game types shared between client and server.
 
 export type Team = "A" | "B";
 export type Role = "TAGER" | "LIGHTER";

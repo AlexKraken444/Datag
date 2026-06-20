@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — light cone visualization. Renders an additive triangle from the
+// Datak — light cone visualization. Renders an additive triangle from the
 // lighter toward its aim point with width derived from brightness. The
 // displayed aim/pos/brightness are *interpolated* every frame toward the
 // latest snapshot values so the cone moves smoothly at 60fps regardless of

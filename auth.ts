@@ -1,4 +1,4 @@
-// Datag — Auth.js v5 configuration. Email + password (credentials provider)
+// Datak — Auth.js v5 configuration. Email + password (credentials provider)
 // with a JWT session. No OAuth, no email magic links — just classic signup.
 //
 // Requires DATABASE_URL + AUTH_SECRET. Without them, authorize() returns null

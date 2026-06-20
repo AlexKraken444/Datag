@@ -1,4 +1,4 @@
-// Datag — light-weight 2D geometry helpers.
+// Datak — light-weight 2D geometry helpers.
 
 import type { Vec2 } from "@/types/game";
 

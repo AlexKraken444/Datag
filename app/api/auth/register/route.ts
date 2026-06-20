@@ -1,4 +1,4 @@
-// Datag — email/password registration.
+// Datak — email/password registration.
 // Validates input, checks uniqueness, stores hashed password.
 
 import { NextResponse } from "next/server";

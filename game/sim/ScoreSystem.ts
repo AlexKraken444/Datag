@@ -1,4 +1,4 @@
-// Datag — score book + winner detection.
+// Datak — score book + winner detection.
 
 import { MATCH } from "@/lib/constants";
 import type { ScoreState, Team } from "@/types/game";

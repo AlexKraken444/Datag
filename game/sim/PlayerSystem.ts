@@ -1,4 +1,4 @@
-// Datag — Tager movement (authoritative).
+// Datak — Tager movement (authoritative).
 //
 // Inputs are clamped: moveX/moveY must form a unit-or-less vector. Sprint
 // drains stamina; we never trust client position. Upgrades are passed as a

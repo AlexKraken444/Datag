@@ -1,4 +1,4 @@
-// Datag — apply a MatchSummary to the local profile: award personal
+// Datak — apply a MatchSummary to the local profile: award personal
 // tag-coins and bump matches-played. Idempotent guard via match id stored
 // in sessionStorage so a re-mount doesn't double-credit.
 

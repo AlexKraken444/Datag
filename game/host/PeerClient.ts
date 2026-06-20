@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — joiner-side client. Connects to the host's PeerJS peer (id = roomCode),
+// Datak — joiner-side client. Connects to the host's PeerJS peer (id = roomCode),
 // sends typed PeerToHost messages, dispatches incoming HostToPeer messages to
 // callbacks consumed by the React UI.
 

@@ -1,4 +1,4 @@
-// Datag — local profile data persisted to localStorage.
+// Datak — local profile data persisted to localStorage.
 
 export type UpgradeId = "SPEED_BOOST" | "SHADOW_SHORT" | "EXTRA_LIFE";
 

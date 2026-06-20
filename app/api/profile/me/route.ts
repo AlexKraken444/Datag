@@ -1,4 +1,4 @@
-// Datag — read / write the authenticated user's profile.
+// Datak — read / write the authenticated user's profile.
 // GET  -> returns the profile (or { profile: null } for unauthenticated).
 // POST -> overwrites coins, upgrades, matchesPlayed. Server-side sanity:
 //         coins >= 0, upgrades subset of known catalogue, no duplicates.

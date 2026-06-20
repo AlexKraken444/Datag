@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — host-browser controller. Owns:
+// Datak — host-browser controller. Owns:
 //   - PeerJS instance with id = roomCode
 //   - lobby state (players, chat, ready, team/role selection)
 //   - HostMatch lifecycle (start / inputs / events)

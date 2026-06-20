@@ -1,4 +1,4 @@
-// Datag — hit detection: does Tager X stand on the shadow cast by team Y?
+// Datak — hit detection: does Tager X stand on the shadow cast by team Y?
 // Returns one or two hit events for this tick; Match decides bonus / draw.
 
 import { tagerInShadow } from "@/lib/shadow";

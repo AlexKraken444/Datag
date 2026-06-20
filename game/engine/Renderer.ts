@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — interprets host snapshots into Pixi scene mutations.
+// Datak — interprets host snapshots into Pixi scene mutations.
 // Snapshots arrive at ~30Hz; cone + lighter positions interpolate every
 // PIXI frame via a ticker callback for 60fps smooth movement.
 

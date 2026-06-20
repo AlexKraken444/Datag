@@ -1,4 +1,4 @@
-// Datag — match simulation running in the HOST browser.
+// Datak — match simulation running in the HOST browser.
 //
 // Owns all authoritative state. Receives PlayerInput from peers, advances the
 // simulation at 60Hz, emits snapshots / round events / match-end via a thin

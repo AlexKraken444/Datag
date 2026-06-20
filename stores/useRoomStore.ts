@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — current room state and chat. Nickname now lives in useProfileStore
+// Datak — current room state and chat. Nickname now lives in useProfileStore
 // (persistent across sessions). This store holds only the ephemeral room
 // snapshot the active connection feeds in.
 

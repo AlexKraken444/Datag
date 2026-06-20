@@ -4,7 +4,7 @@ import { Footer } from "@/components/ui/Footer";
 import { AuthProviders } from "@/components/auth/AuthProviders";
 
 export const metadata: Metadata = {
-  title: "Datag — 2v2 shadow arena",
+  title: "Datak — 2v2 shadow arena",
   description:
     "Соревновательная 2v2 игра с прожекторами и тенями. Tager + Lighter, лучшее из 12.",
 };

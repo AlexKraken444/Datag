@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — bootstraps a PIXI.Application sized to the arena + Lighter ring
+// Datak — bootstraps a PIXI.Application sized to the arena + Lighter ring
 // and attaches it to a host <div>. All layers are offset by ARENA.OFFSET so
 // that arena (0,0) lands inside the canvas while the perimeter ring fits
 // around it.

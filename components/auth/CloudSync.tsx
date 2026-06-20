@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — bidirectional sync between useProfileStore (localStorage) and the
+// Datak — bidirectional sync between useProfileStore (localStorage) and the
 // server-side profile (Prisma). Pulls once on auth, then pushes any local
 // change debounced 800ms.
 

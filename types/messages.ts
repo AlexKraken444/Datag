@@ -1,4 +1,4 @@
-// Datag — typed messages exchanged over PeerJS DataConnection.
+// Datak — typed messages exchanged over PeerJS DataConnection.
 // Two directions: PEER ↔ HOST. The host's browser is authoritative.
 
 import type {

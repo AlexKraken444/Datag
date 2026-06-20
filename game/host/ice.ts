@@ -1,4 +1,4 @@
-// Datag — WebRTC ICE config used by both HostController and PeerClient.
+// Datak — WebRTC ICE config used by both HostController and PeerClient.
 // STUN: Google's free public servers.
 // TURN: Metered's free OpenRelay (rate-limited but reliable enough for
 //       casual play). Replace with your own TURN credentials if you want

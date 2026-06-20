@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — on-screen virtual joystick + role-specific action buttons for
+// Datak — on-screen virtual joystick + role-specific action buttons for
 // touch devices. Writes into refs that the InputSystem already polls.
 
 import {

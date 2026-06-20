@@ -1,4 +1,4 @@
-// Datag — recompute both shadow polygons each tick. The Tager's own upgrades
+// Datak — recompute both shadow polygons each tick. The Tager's own upgrades
 // can shorten the shadow it casts (SHADOW_SHORT).
 
 import { computeShadow } from "@/lib/shadow";

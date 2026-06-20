@@ -1,4 +1,4 @@
-// Datag — fixed-step 60Hz simulation loop with a separate broadcast cadence.
+// Datak — fixed-step 60Hz simulation loop with a separate broadcast cadence.
 // Runs in the host player's browser via window.setInterval.
 
 import { TICK } from "@/lib/constants";

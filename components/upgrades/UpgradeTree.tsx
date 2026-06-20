@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — upgrade tree component. Used on /profile and in the lobby.
+// Datak — upgrade tree component. Used on /profile and in the lobby.
 // Each upgrade can be purchased exactly once.
 
 import { useState } from "react";

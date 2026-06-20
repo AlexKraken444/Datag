@@ -1,4 +1,4 @@
-// Datag — game-wide constants. Shared by server (authoritative) and client (render).
+// Datak — game-wide constants. Shared by server (authoritative) and client (render).
 
 const _LIGHTER_THICKNESS = 90;
 

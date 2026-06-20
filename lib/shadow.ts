@@ -1,4 +1,4 @@
-// Datag — shadow polygon computation.
+// Datak — shadow polygon computation.
 //
 // Model: each Tager occludes light coming from its team's Lighter. We project a
 // quad starting at the Tager's silhouette edges (tangent points on the circle

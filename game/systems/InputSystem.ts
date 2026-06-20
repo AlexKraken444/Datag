@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — translates raw keyboard/mouse/touch into PlayerInput payloads at
+// Datak — translates raw keyboard/mouse/touch into PlayerInput payloads at
 // 30Hz. Coordinates are arena-space; the host doesn't need to know about
 // screen sizes.
 

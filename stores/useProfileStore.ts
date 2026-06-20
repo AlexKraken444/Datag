@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — persistent local profile (nickname, tag-coins, owned upgrades).
+// Datak — persistent local profile (nickname, tag-coins, owned upgrades).
 // Backed by localStorage; survives navigation, refresh, and tab close.
 
 import { create } from "zustand";

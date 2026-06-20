@@ -1,4 +1,4 @@
-// Datag — room-code generator (6 chars, easy to read aloud, no ambiguous glyphs)
+// Datak — room-code generator (6 chars, easy to read aloud, no ambiguous glyphs)
 const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
 export function generateRoomCode(length = 6): string {

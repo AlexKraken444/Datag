@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — global author credit. Pinned at the bottom of every page.
+// Datak — global author credit. Pinned at the bottom of every page.
 
 export function Footer() {
   return (

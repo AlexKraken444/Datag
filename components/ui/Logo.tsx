@@ -21,7 +21,7 @@ export function Logo({ size = 64 }: { size?: number }) {
         <polygon points="32,18 50,46 32,38" fill="#0a0d12" stroke="#19f4d6" strokeWidth="1.5" />
       </svg>
       <div className="leading-tight">
-        <div className="text-2xl font-bold glow-text">DATAG</div>
+        <div className="text-2xl font-bold glow-text">DATAK</div>
         <div className="text-xs uppercase tracking-[0.3em] text-muted">shadow arena</div>
       </div>
     </motion.div>

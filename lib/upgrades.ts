@@ -1,4 +1,4 @@
-// Datag — upgrade catalog. Single source of truth for cost / effect numbers.
+// Datak — upgrade catalog. Single source of truth for cost / effect numbers.
 
 import type { UpgradeId } from "@/types/profile";
 

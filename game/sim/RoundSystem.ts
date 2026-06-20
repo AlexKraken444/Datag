@@ -1,4 +1,4 @@
-// Datag — round phases + spawn reset.
+// Datak — round phases + spawn reset.
 
 import { ROUND, TAGER, LIGHTER } from "@/lib/constants";
 import type {

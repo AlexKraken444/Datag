@@ -1,4 +1,4 @@
-// Datag — start zones for Tagers (corner triangles) and the shared Lighter
+// Datak — start zones for Tagers (corner triangles) and the shared Lighter
 // perimeter ring around the arena.
 //
 // Coordinate system: (0,0) = top-left of arena, +x right, +y down.

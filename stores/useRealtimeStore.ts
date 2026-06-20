@@ -1,6 +1,6 @@
 "use client";
 
-// Datag — singleton wrapper around the active realtime endpoint.
+// Datak — singleton wrapper around the active realtime endpoint.
 // In a host browser:   role = "host",  ctl is HostController
 // In a peer browser:   role = "peer",  ctl is PeerClient
 // Provides one unified send-API used by UI components.
