@@ -17,6 +17,20 @@ body {
 
 body {
   overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+/* Disable browser pull-to-refresh / pinch zoom on the game screen.  */
+.touch-none {
+  touch-action: none;
 }
 
 * {

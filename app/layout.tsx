@@ -1,10 +1,20 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Footer } from "@/components/ui/Footer";
 
 export const metadata: Metadata = {
   title: "Datag — 2v2 shadow arena",
   description:
     "Соревновательная 2v2 игра с прожекторами и тенями. Tager + Lighter, лучшее из 12.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#0a0d12",
 };
 
 export default function RootLayout({
@@ -14,7 +24,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" className="dark">
-      <body>{children}</body>
+      <body className="min-h-screen flex flex-col">
+        <main className="flex-1 flex flex-col min-h-0">{children}</main>
+        <Footer />
+      </body>
     </html>
   );
 }

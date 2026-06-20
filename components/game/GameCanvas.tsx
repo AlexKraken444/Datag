@@ -2,7 +2,9 @@
 
 // Datag — Pixi mount. Subscribes to useGameStore for snapshots (filled by
 // the active HostController/PeerClient), drives an InputSystem that calls
-// useRealtimeStore.input() with the unified send API.
+// useRealtimeStore.input() with the unified send API. On touch devices,
+// renders a virtual joystick + action buttons that feed into the same
+// InputSystem via dedicated refs.
 
 import { useEffect, useRef, useState } from "react";
 import { useRealtimeStore } from "@/stores/useRealtimeStore";
@@ -10,9 +12,15 @@ import { useGameStore } from "@/stores/useGameStore";
 import { useRoomStore } from "@/stores/useRoomStore";
 import { useKeyboard } from "@/hooks/useKeyboard";
 import { useMouse } from "@/hooks/useMouse";
+import { useIsTouch } from "@/hooks/useIsTouch";
 import { PixiApp } from "@/game/engine/PixiApp";
 import { Renderer } from "@/game/engine/Renderer";
-import { InputSystem } from "@/game/systems/InputSystem";
+import {
+  InputSystem,
+  type TouchActions,
+  type TouchAxes,
+} from "@/game/systems/InputSystem";
+import { TouchControls } from "./TouchControls";
 import type { Role } from "@/types/game";
 
 export function GameCanvas() {
@@ -23,13 +31,17 @@ export function GameCanvas() {
   const room = useRoomStore((s) => s.room);
   const sendInput = useRealtimeStore((s) => s.input);
   const myPeerId = useRealtimeStore((s) => s.myPeerId);
+  const isTouch = useIsTouch();
+
+  const touchAxes = useRef<TouchAxes>({ x: 0, y: 0 });
+  const touchActions = useRef<TouchActions>({});
 
   const [phase, setPhase] = useState<"loading" | "live">("loading");
+  const me = room?.players.find((p) => p.id === myPeerId);
+  const myRole: Role = me?.role ?? "TAGER";
 
   useEffect(() => {
     if (!hostRef.current) return;
-    const me = room?.players.find((p) => p.id === myPeerId);
-    const myRole: Role = me?.role ?? "TAGER";
 
     const pixi = new PixiApp();
     const renderer = new Renderer(pixi);
@@ -38,6 +50,8 @@ export function GameCanvas() {
       keys,
       mouse,
       (p) => sendInput(p),
+      touchAxes,
+      touchActions,
     );
 
     let cancelled = false;
@@ -54,7 +68,6 @@ export function GameCanvas() {
       setPhase("live");
     })();
 
-    // bridge: re-render scene whenever a new snapshot lands in the store
     const unsubSnap = useGameStore.subscribe((state, prev) => {
       if (state.snapshot && state.snapshot !== prev.snapshot) {
         renderer.apply(state.snapshot);
@@ -83,6 +96,15 @@ export function GameCanvas() {
         <div className="absolute inset-0 flex items-center justify-center text-muted">
           Загружаем сцену…
         </div>
+      )}
+      {isTouch && phase === "live" && (
+        <TouchControls
+          role={myRole}
+          axesRef={touchAxes}
+          actionsRef={touchActions}
+          aimTarget={wrapRef}
+          mouseWriter={mouse.current ?? undefined}
+        />
       )}
     </div>
   );
